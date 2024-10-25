@@ -24,4 +24,13 @@ router.get("/current-user", (req, res) => {
   }
 });
 
+router.get("/logout", (req, res, next) => {
+  req.logOut((err) => {
+    if (err) {
+      return next(err);
+    }
+    res.status(200).json({ status: "ok" });
+  });
+});
+
 export default router;
