@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import MongoStore from "connect-mongo";
 import cors from "cors";
 import express from "express";
 import session from "express-session";
@@ -11,8 +12,8 @@ import passport from "passport";
 import "./config/passport";
 
 // routes
-import MongoStore from "connect-mongo";
 import authRoute from "./routes/auth";
+import contractsRoute from "./routes/contract";
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use("/auth", authRoute);
+app.use("/contracts", contractsRoute);
 
 const PORT = 8080;
 app.listen(PORT, () => {
