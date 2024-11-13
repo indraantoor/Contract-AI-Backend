@@ -12,8 +12,10 @@ import passport from "passport";
 import "./config/passport";
 
 // routes
+import { handleWebhook } from "./controllers/payment.controller";
 import authRoute from "./routes/auth";
 import contractsRoute from "./routes/contract";
+import paymentsRoute from "./routes/payments";
 
 const app = express();
 
@@ -33,6 +35,12 @@ app.use(
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
+
+app.post(
+  "/payments/webhook",
+  express.raw({ type: "application/json" }),
+  handleWebhook
+);
 
 app.use(
   session({
@@ -55,6 +63,7 @@ app.use(passport.session());
 
 app.use("/auth", authRoute);
 app.use("/contracts", contractsRoute);
+app.use("/payments", paymentsRoute);
 
 const PORT = 8080;
 app.listen(PORT, () => {
