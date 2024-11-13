@@ -1,13 +1,17 @@
 import type { Request, Response } from "express";
+import mongoose, { FilterQuery } from "mongoose";
 import multer from "multer";
 import redis from "../config/redis";
-import ContractAnalysisSchema from "../models/contract.model";
+import ContractAnalysisSchema, {
+  IContractAnalysis,
+} from "../models/contract.model";
 import { IUser } from "../models/user.model";
 import {
   analyzeContractWithAI,
   detectContractType,
   extractTextFromPDF,
 } from "../services/ai.services";
+import { isValidMongoId } from "../utils/mongoUtils";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -90,5 +94,59 @@ export const analyzeContract = async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Failed to analyze contract" });
+  }
+};
+
+export const getUserContracts = async (req: Request, res: Response) => {
+  const user = req.user as IUser;
+
+  try {
+    interface QueryType {
+      userId: mongoose.Types.ObjectId;
+    }
+
+    const query: QueryType = { userId: user._id as mongoose.Types.ObjectId };
+
+    const contracts = await ContractAnalysisSchema.find(
+      query as FilterQuery<IContractAnalysis>
+    ).sort({ createdAt: -1 });
+
+    res.json(contracts);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to get contracts" });
+  }
+};
+
+export const getContractByID = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const user = req.user as IUser;
+
+  if (!isValidMongoId(id)) {
+    return res.status(400).json({ error: "Invalid contract ID" });
+  }
+
+  try {
+    const cachedContracts = await redis.get(`contract:${id}`);
+
+    if (cachedContracts) {
+      return res.json(cachedContracts);
+    }
+
+    const contract = await ContractAnalysisSchema.findOne({
+      _id: id,
+      userId: user._id,
+    });
+
+    if (!contract) {
+      return res.status(404).json({ error: "Contract not found" });
+    }
+
+    await redis.set(`contract:${id}`, contract, { ex: 3600 }); // 1 hour
+
+    res.json(contract);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to get contract" });
   }
 };
