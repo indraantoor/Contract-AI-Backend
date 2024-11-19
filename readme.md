@@ -6,7 +6,9 @@
 
   <h1 align="center">Contract Analysis AI</h1>
 
-https://github.com/user-attachments/assets/338deefe-615e-427d-ab9b-db1a5a60bbf9
+
+https://github.com/user-attachments/assets/497eb91c-11b0-46a3-b716-d40384e23657
+
 
   <p align="center">
  It quickly identifies risks, enhances compliance, and offers insights for faster negotiation using AI.
